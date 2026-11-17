@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F5FA8">
+<title>Leat Leat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Rubik:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a study luach (Hebrew calendar desk). "Hoy" is the home: goal ring + Hebrew date, missions, 14-day strip. Drills sit in tabs below. Tekhelet blue for progress, gold for achievements. */
+:root {
+  --bg: #F3F6FA; --surface: #FFFFFF; --ink: #14233A; --muted: #5B6B82; --line: #D9E1EC;
+  --tekhelet: #1F5FA8; --tekhelet-soft: #E3EDF9; --gold: #C8891A; --gold-soft: #FBF0DC;
+  --good: #2E7D4F; --good-soft: #E2F2E8; --bad: #B3402E; --bad-soft: #F8E5E1; --on-accent: #FFFFFF;
+  --font-he: "Frank Ruhl Libre", "David", "Times New Roman", serif;
+  --font-ui: "Rubik", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1624; --surface: #162133; --ink: #E7EDF6; --muted: #9AA9BF; --line: #263449;
+    --tekhelet: #6FA3E6; --tekhelet-soft: #1A2B45; --gold: #E5AE4C; --gold-soft: #33280F;
+    --good: #6CC791; --good-soft: #15301F; --bad: #EE8A78; --bad-soft: #3A1C17; --on-accent: #0E1624;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1624; --surface: #162133; --ink: #E7EDF6; --muted: #9AA9BF; --line: #263449;
+  --tekhelet: #6FA3E6; --tekhelet-soft: #1A2B45; --gold: #E5AE4C; --gold-soft: #33280F;
+  --good: #6CC791; --good-soft: #15301F; --bad: #EE8A78; --bad-soft: #3A1C17; --on-accent: #0E1624;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.5; }
+.wrap {
+  max-width: 920px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.he { font-family: var(--font-he); direction: rtl; unicode-bidi: isolate; }
+header.top { display: grid; gap: 18px; padding-block: 8px 20px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.brand h1 { margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: -0.01em; }
+.brand .he { font-size: 2.4rem; font-weight: 900; color: var(--tekhelet); line-height: 1; }
+.brand .lvl { font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 2px 8px; }
+.sync { margin-inline-start: auto; font-size: .8rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="cloud"]::before { background: var(--good); }
+.sync[data-state="saving"]::before { background: var(--gold); }
+.sync[data-state="error"]::before { background: var(--bad); }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.stat { padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); min-width: 0; }
+.stat b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.stat b .he { font-size: 1.5rem; }
+.stat span { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.bar { height: 4px; background: var(--line); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--tekhelet); width: 0; transition: width .4s; }
+.bar.gold i { background: var(--gold); }
+
+nav.tabs { display: flex; gap: 4px; margin-block: 20px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+nav.tabs button {
+  font: inherit; font-weight: 500; background: none; border: 0; color: var(--muted); padding: 10px 14px; cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap;
+}
+nav.tabs button[aria-selected="true"] { color: var(--tekhelet); border-bottom-color: var(--tekhelet); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+h2 { font-size: 1.25rem; margin: 0 0 4px; text-wrap: balance; }
+h3 { font-size: .8rem; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+.lead { color: var(--muted); margin: 0 0 18px; max-width: 65ch; }
+.btn { font: inherit; font-weight: 500; border-radius: 6px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn.primary { background: var(--tekhelet); color: var(--on-accent); border-color: var(--tekhelet); }
+.btn.big { font-size: 1.05rem; padding: 14px 22px; font-weight: 600; }
+.btn.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.btn.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.btn.link { border: 0; background: none; color: var(--tekhelet); padding: 6px 4px; text-decoration: underline; }
+.btn:disabled { opacity: .45; cursor: default; }
+.speak { font: inherit; border: 0; background: var(--tekhelet-soft); color: var(--tekhelet); border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: .85rem; font-weight: 500; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+label.ctl { display: flex; gap: 6px; align-items: center; font-size: .9rem; color: var(--muted); }
+select, input[type="text"] { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+.seg button { font: inherit; font-size: .9rem; border: 0; background: var(--surface); color: var(--muted); padding: 8px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--tekhelet); color: var(--on-accent); }
+
+/* Hoy */
+.today { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: center; padding: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.ringbox { position: relative; width: 200px; max-width: 100%; aspect-ratio: 1; margin: 0 auto; }
+.ringbox svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ringbox circle { fill: none; stroke-width: 12; }
+.ringbox .track { stroke: var(--line); }
+.ringbox .fill { stroke: var(--tekhelet); stroke-linecap: round; transition: stroke-dashoffset .6s; }
+.ringbox.met .fill { stroke: var(--gold); }
+.ringcenter { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ringcenter b { font-size: 2.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.ringcenter small { color: var(--muted); }
+.ringcenter .hd { font-family: var(--font-he); font-size: 1.1rem; color: var(--tekhelet); margin-top: 6px; direction: rtl; }
+.todayinfo { display: grid; gap: 14px; min-width: 0; }
+.todayinfo .msg { font-size: 1.15rem; font-weight: 500; margin: 0; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+.panel { padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); min-width: 0; }
+.mission { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); }
+.mission:last-child { border-bottom: 0; }
+.mission .chk { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: .8rem; color: var(--on-accent); }
+.mission.done .chk { background: var(--gold); border-color: var(--gold); }
+.mission.done .mt { color: var(--muted); text-decoration: line-through; }
+.mission .bar { grid-column: 2 / 4; margin-top: 2px; }
+.mission .xp { font-size: .8rem; color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; }
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; direction: rtl; }
+.day { display: grid; gap: 3px; justify-items: center; }
+.day .cell { position: relative; width: 100%; aspect-ratio: 1; max-width: 44px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.day .cell i { position: absolute; inset: 0; background: var(--tekhelet); }
+.day.met .cell { box-shadow: inset 0 0 0 2px var(--gold); }
+.day.now .cell { outline: 2px solid var(--ink); outline-offset: 1px; }
+.day small { font-family: var(--font-he); color: var(--muted); font-size: .8rem; }
+.legend { color: var(--muted); font-size: .8rem; margin-top: 10px; }
+.levelrow { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.levelrow .badge { font-family: var(--font-he); font-size: 2rem; font-weight: 900; color: var(--gold); width: 56px; height: 56px; display: grid; place-items: center; border: 2px solid var(--gold); border-radius: 50%; flex: none; }
+
+/* Session */
+.sesshead { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.sesshead .bar { flex: 1; min-width: 120px; height: 8px; margin: 0; border-radius: 4px; }
+.combo { font-size: .85rem; font-weight: 600; color: var(--gold); font-variant-numeric: tabular-nums; }
+.summary { text-align: center; padding: 28px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); display: grid; gap: 8px; justify-items: center; }
+.summary .score { font-size: 3rem; font-weight: 700; color: var(--tekhelet); font-variant-numeric: tabular-nums; line-height: 1; }
+.summary .gain { font-size: 1.2rem; color: var(--gold); font-weight: 600; }
+
+/* Drill */
+.drill { max-width: 600px; margin-top: 16px; }
+.qprompt { padding: 22px; text-align: center; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); margin-block: 12px; display: grid; gap: 6px; }
+.qprompt .main { font-family: var(--font-he); font-size: 2.6rem; font-weight: 700; line-height: 1.2; direction: rtl; }
+.qprompt .main .plus { color: var(--muted); font-weight: 500; padding-inline: .2em; }
+.qprompt .sub { color: var(--muted); }
+.tag { display: inline-block; font-family: var(--font-ui); font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--tekhelet); background: var(--tekhelet-soft); border-radius: 4px; padding: 3px 8px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { font-family: var(--font-he); font-size: 1.6rem; padding: 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; min-width: 0; }
+.opt.es { font-family: var(--font-ui); font-size: 1.05rem; }
+.opt.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.typein { display: flex; gap: 8px; }
+.typein input { flex: 1; min-width: 0; font-family: var(--font-he); font-size: 1.6rem; direction: rtl; }
+.typein input.right { border-color: var(--good); background: var(--good-soft); }
+.typein input.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.feedback { margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: var(--surface); border-left: 3px solid var(--gold); }
+.feedback .he { font-size: 1.3rem; font-weight: 700; }
+.feedback .xpgain { color: var(--gold); font-weight: 600; margin-inline-start: 8px; }
+.counter { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .9rem; }
+.tablewrap { overflow-x: auto; margin-top: 10px; }
+table.conj { border-collapse: collapse; font-size: .95rem; width: 100%; }
+table.conj th, table.conj td { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: right; white-space: nowrap; }
+table.conj th { color: var(--muted); font-weight: 500; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+table.conj td { font-family: var(--font-he); font-size: 1.2rem; direction: rtl; }
+table.conj td.hit { color: var(--tekhelet); font-weight: 700; }
+
+/* Flashcards */
+.cardzone { display: grid; place-items: center; gap: 16px; margin-top: 16px; }
+.flash { width: min(100%, 460px); min-height: 230px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; text-align: center; padding: 24px; cursor: pointer; font: inherit; color: var(--ink); }
+.flash .bigtxt { font-family: var(--font-he); font-size: 3rem; font-weight: 700; line-height: 1.2; direction: rtl; }
+.flash .bigtxt.es { font-family: var(--font-ui); font-size: 1.8rem; direction: ltr; }
+.flash .tr { font-size: 1.05rem; color: var(--tekhelet); font-weight: 500; margin-top: 8px; }
+.flash .ans { font-size: 1.3rem; margin-top: 6px; }
+.flash .ans.he { font-size: 2rem; font-weight: 700; }
+.flash .ex { color: var(--muted); margin-top: 10px; font-size: 1.15rem; }
+.flash .hint { color: var(--muted); font-size: .85rem; margin-top: 12px; }
+
+/* Reading */
+.text { font-family: var(--font-he); font-size: 1.45rem; line-height: 1.9; direction: rtl; text-align: right; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; max-width: 70ch; }
+.gloss { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px 18px; margin-top: 12px; font-size: .95rem; }
+.gloss .he { font-size: 1.15rem; font-weight: 700; }
+.rq { margin-top: 18px; display: grid; gap: 16px; max-width: 70ch; }
+.rq .q { font-family: var(--font-he); font-size: 1.3rem; font-weight: 700; direction: rtl; text-align: right; margin-bottom: 8px; }
+.rq .opt { font-size: 1.15rem; text-align: right; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 6px; font-size: .9rem; max-width: calc(100% - 32px); z-index: 20; }
+.xppill { position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: calc(16px + env(safe-area-inset-right, 0px)); background: var(--gold); color: var(--on-accent); font-weight: 700; padding: 6px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; z-index: 20; animation: pop .9s ease-out forwards; }
+@keyframes pop { 0% { transform: translateY(6px); opacity: 0; } 20% { transform: none; opacity: 1; } 75% { opacity: 1; } 100% { transform: translateY(-10px); opacity: 0; } }
+footer { margin-top: 40px; color: var(--muted); font-size: .82rem; max-width: 65ch; }
+
+@media (max-width: 680px) {
+  .today { grid-template-columns: 1fr; }
+  .grid2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .opts { grid-template-columns: 1fr; }
+  .flash .bigtxt { font-size: 2.4rem; }
+  .qprompt .main { font-size: 2.1rem; }
+  .text { font-size: 1.25rem; padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+html, body { margin: 0; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+button.sync { font: inherit; font-size: .8rem; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.account { margin-top: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: grid; gap: 10px; max-width: 520px; justify-self: end; width: 100%; }
+.account p { margin: 0; color: var(--muted); font-size: .9rem; }
+.account form { display: flex; gap: 8px; flex-wrap: wrap; }
+.account input[type="email"] { flex: 1; min-width: 0; font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="he" lang="he">לאט לאט</span>
+      <h1>Leat Leat</h1>
+      <span class="lvl">Nivel ב–ג</span>
+      <button class="sync" id="sync" data-state="local" aria-expanded="false" aria-controls="account">Solo en este navegador</button>
+    </div>
+    <div class="account" id="account" hidden>
+      <div id="acc-out">
+        <p>Entra con tu email para guardar tu progreso y verlo en cualquier ordenador o en el móvil. Te mandamos un enlace; no hace falta contraseña.</p>
+        <form id="login-form" style="margin-top:10px">
+          <input type="email" id="login-email" required placeholder="tu@email.com" autocomplete="email" aria-label="Email">
+          <button class="btn primary">Enviarme el enlace</button>
+        </form>
+      </div>
+      <div id="acc-in" hidden>
+        <p>Has entrado como <b id="acc-email"></b>. Tu progreso se guarda solo.</p>
+        <div class="row" style="margin-top:10px"><button class="btn" id="logout">Salir</button></div>
+      </div>
+      <p id="acc-msg" aria-live="polite"></p>
+    </div>
+    <div class="stats" aria-label="Tu progreso">
+      <div class="stat"><b id="st-today">0/50</b><span>XP de hoy</span><div class="bar"><i id="bar-today"></i></div></div>
+      <div class="stat"><b id="st-streak">0</b><span>Días de racha</span></div>
+      <div class="stat"><b id="st-level">–</b><span>Nivel</span><div class="bar gold"><i id="bar-level"></i></div></div>
+      <div class="stat"><b id="st-words">0</b><span>Palabras sabidas</span><div class="bar"><i id="bar-words"></i></div></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="hoy" aria-selected="true">Hoy</button>
+    <button role="tab" data-tab="verbos" aria-selected="false">Verbos</button>
+    <button role="tab" data-tab="preposiciones" aria-selected="false">Preposiciones</button>
+    <button role="tab" data-tab="vocabulario" aria-selected="false">Vocabulario</button>
+    <button role="tab" data-tab="lectura" aria-selected="false">Lectura</button>
+  </nav>
+
+  <section id="hoy" role="tabpanel">
+    <div id="home">
+      <div class="today">
+        <div class="ringbox" id="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="52"></circle><circle class="fill" id="ring-fill" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle></svg>
+          <div class="ringcenter"><b id="ring-xp">0</b><small id="ring-goal">de 50 XP</small><div class="hd" id="hebdate"></div></div>
+        </div>
+        <div class="todayinfo">
+          <p class="msg" id="today-msg"></p>
+          <div>
+            <h3>Objetivo diario</h3>
+            <div class="seg" role="group" aria-label="Objetivo diario" id="goal-seg"></div>
+          </div>
+          <div class="row">
+            <button class="btn primary big" id="start-session">Empezar la sesión del día</button>
+            <span class="counter">10 preguntas mezcladas · unos 5 minutos</span>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <h3>Misiones de hoy</h3>
+          <div id="missions"></div>
+          <p class="legend">Cambian cada día. Cada misión cumplida suma 10 XP.</p>
+        </div>
+        <div class="panel">
+          <h3>Últimas dos semanas</h3>
+          <div class="days" id="days"></div>
+          <p class="legend">Cuanto más lleno, más XP ese día. El borde dorado marca los días con el objetivo cumplido.</p>
+          <div class="levelrow">
+            <div class="badge" id="lvl-badge">א</div>
+            <div style="flex:1;min-width:0">
+              <div id="lvl-text"></div>
+              <div class="bar gold"><i id="lvl-bar"></i></div>
+              <div class="counter" id="acc-text" style="margin-top:6px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="session" hidden></div>
+  </section>
+
+  <section id="verbos" role="tabpanel" hidden>
+    <h2>Conjugación por binyán</h2>
+    <p class="lead">12 verbos de los cinco binyanim activos, incluidas raíces débiles (ל״ה, ע״ו, פ״י, פ״א). Te doy el infinitivo, el tiempo y la persona, y tú das la forma. Elegir da 2 XP; escribir da 3.</p>
+    <div class="row">
+      <label class="ctl" for="v-tense">Tiempo
+        <select id="v-tense"><option value="mix">Todos</option><option value="pres">Presente (הווה)</option><option value="past">Pasado (עבר)</option><option value="fut">Futuro (עתיד)</option></select>
+      </label>
+      <label class="ctl" for="v-bin">Binyán
+        <select id="v-bin"><option value="*">Todos</option><option>פָּעַל</option><option>פִּיעֵל</option><option>הִפְעִיל</option><option>הִתְפַּעֵל</option><option>נִפְעַל</option></select>
+      </label>
+      <div class="seg" role="group" aria-label="Modo de respuesta" data-for="verbs">
+        <button aria-pressed="true" data-mode="choose">Elegir</button><button aria-pressed="false" data-mode="type">Escribir</button>
+      </div>
+    </div>
+    <div class="drill" id="verb-drill"></div>
+  </section>
+
+  <section id="preposiciones" role="tabpanel" hidden>
+    <h2>Preposiciones con sufijos</h2>
+    <p class="lead">El clásico de nivel ב: <span class="he" lang="he">של + אנחנו = שלנו</span>. Diez preposiciones con las ocho personas. Algunas tienen dos grafías aceptadas (<span class="he" lang="he">עליי / עלי</span>); las dos cuentan.</p>
+    <div class="row">
+      <label class="ctl" for="p-prep">Preposición
+        <select id="p-prep"><option value="*">Todas</option></select>
+      </label>
+      <div class="seg" role="group" aria-label="Modo de respuesta" data-for="preps">
+        <button aria-pressed="true" data-mode="choose">Elegir</button><button aria-pressed="false" data-mode="type">Escribir</button>
+      </div>
+    </div>
+    <div class="drill" id="prep-drill"></div>
+  </section>
+
+  <section id="vocabulario" role="tabpanel" hidden>
+    <h2>Vocabulario intermedio</h2>
+    <p class="lead">Trabajo, salud, trámites, emociones, conectores y argot. Intenta leer primero sin ayuda; si no sabes cómo se pronuncia, pulsa “Ver pronunciación” o escúchala. Cada palabra nueva que marcas como sabida da 1 XP.</p>
+    <div class="row">
+      <label class="ctl" for="cat">Tema <select id="cat"></select></label>
+      <div class="seg" role="group" aria-label="Dirección">
+        <button aria-pressed="true" data-dir="he">עברית → español</button><button aria-pressed="false" data-dir="es">español → עברית</button>
+      </div>
+      <label class="ctl" for="show-tr"><input type="checkbox" id="show-tr"> Pronunciación siempre visible</label>
+      <button class="btn" id="shuffle">Mezclar</button>
+      <span class="counter" id="fc-count"></span>
+    </div>
+    <div class="cardzone">
+      <button class="flash" id="flash" aria-live="polite"></button>
+      <div class="row">
+        <button class="btn" id="fc-prev">← Anterior</button>
+        <button class="speak" id="fc-speak">🔊 Escuchar</button>
+        <button class="speak" id="fc-slow">🐢 Más lento</button>
+        <button class="btn" id="fc-pron">Ver pronunciación</button>
+        <button class="btn bad" id="fc-again">Repasar</button>
+        <button class="btn good" id="fc-know">La sé</button>
+      </div>
+      <p class="legend" style="max-width:460px;text-align:center">Cómo leer la pronunciación: la vocal con tilde es la sílaba fuerte (shalóm). La <b>j</b> suena como la jota española, la <b>r</b> es gutural (como en francés), <b>ts</b> como en “tsunami” y el apóstrofo (<b>'</b>) marca una pequeña pausa.</p>
+    </div>
+  </section>
+
+  <section id="lectura" role="tabpanel" hidden>
+    <h2>Lectura</h2>
+    <p class="lead">Textos cortos sin niqud, del tipo que aparece en el ulpán a nivel ב–ג. Lee, mira el glosario solo si te atascas y responde en hebreo. Cada acierto da 3 XP.</p>
+    <div class="row">
+      <label class="ctl" for="r-text">Texto <select id="r-text"></select></label>
+      <button class="speak" id="r-speak">🔊 Escuchar el texto</button>
+      <button class="btn link" id="r-gloss-btn">Mostrar glosario</button>
+    </div>
+    <div id="reading" style="margin-top:14px"></div>
+  </section>
+
+  <footer>Si entras con tu email (arriba a la derecha), tu progreso se guarda en tu cuenta y lo ves en cualquier ordenador o en el móvil. Es privado: nadie más lo ve. Sin entrar, se guarda solo en este navegador. Para el modo “Escribir” necesitas el teclado hebreo activado (en Windows: Win + Espacio para cambiar). El audio usa la voz en hebreo de tu sistema, si la tiene.</footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+<div id="xp-layer"></div>
+
+<script>
+/* ================= DATA ================= */
+const PERSONS = ["אני","אתה","את","הוא","היא","אנחנו","אתם","הם"];
+const PRES_P = ["הוא","היא","הם","הן"];
+const TENSE_LABEL = { pres: "הווה · presente", past: "עבר · pasado", fut: "עתיד · futuro" };
+
+const VERBS = [
+  { inf:"לכתוב", es:"escribir", b:"פָּעַל", root:"כ־ת־ב", note:"",
+    pres:["כותב","כותבת","כותבים","כותבות"],
+    past:["כתבתי","כתבת","כתבת","כתב","כתבה","כתבנו","כתבתם","כתבו"],
+    fut:["אכתוב","תכתוב","תכתבי","יכתוב","תכתוב","נכתוב","תכתבו","יכתבו"] },
+  { inf:"לקנות", es:"comprar", b:"פָּעַל", root:"ק־נ־ה", note:"ל״ה: la ה desaparece o se vuelve י",
+    pres:["קונה","קונה","קונים","קונות"],
+    past:["קניתי","קנית","קנית","קנה","קנתה","קנינו","קניתם","קנו"],
+    fut:["אקנה","תקנה","תקני","יקנה","תקנה","נקנה","תקנו","יקנו"] },
+  { inf:"לגור", es:"vivir (residir)", b:"פָּעַל", root:"ג־ו־ר", note:"ע״ו: la ו solo aparece en infinitivo y futuro",
+    pres:["גר","גרה","גרים","גרות"],
+    past:["גרתי","גרת","גרת","גר","גרה","גרנו","גרתם","גרו"],
+    fut:["אגור","תגור","תגורי","יגור","תגור","נגור","תגורו","יגורו"] },
+  { inf:"לשבת", es:"sentarse", b:"פָּעַל", root:"י־ש־ב", note:"פ״י: la י cae en infinitivo y futuro",
+    pres:["יושב","יושבת","יושבים","יושבות"],
+    past:["ישבתי","ישבת","ישבת","ישב","ישבה","ישבנו","ישבתם","ישבו"],
+    fut:["אשב","תשב","תשבי","ישב","תשב","נשב","תשבו","ישבו"] },
+  { inf:"לאכול", es:"comer", b:"פָּעַל", root:"א־כ־ל", note:"פ״א: futuro con o (אוכל, תאכל)",
+    pres:["אוכל","אוכלת","אוכלים","אוכלות"],
+    past:["אכלתי","אכלת","אכלת","אכל","אכלה","אכלנו","אכלתם","אכלו"],
+    fut:["אוכל","תאכל","תאכלי","יאכל","תאכל","נאכל","תאכלו","יאכלו"] },
+  { inf:"לדבר", es:"hablar", b:"פִּיעֵל", root:"ד־ב־ר", note:"פיעל: presente con מ־, pasado con י después de la 1.ª letra",
+    pres:["מדבר","מדברת","מדברים","מדברות"],
+    past:["דיברתי","דיברת","דיברת","דיבר","דיברה","דיברנו","דיברתם","דיברו"],
+    fut:["אדבר","תדבר","תדברי","ידבר","תדבר","נדבר","תדברו","ידברו"] },
+  { inf:"לחפש", es:"buscar", b:"פִּיעֵל", root:"ח־פ־ש", note:"",
+    pres:["מחפש","מחפשת","מחפשים","מחפשות"],
+    past:["חיפשתי","חיפשת","חיפשת","חיפש","חיפשה","חיפשנו","חיפשתם","חיפשו"],
+    fut:["אחפש","תחפש","תחפשי","יחפש","תחפש","נחפש","תחפשו","יחפשו"] },
+  { inf:"להתחיל", es:"empezar", b:"הִפְעִיל", root:"ת־ח־ל", note:"הפעיל: la י se pierde en 1.ª y 2.ª persona del pasado",
+    pres:["מתחיל","מתחילה","מתחילים","מתחילות"],
+    past:["התחלתי","התחלת","התחלת","התחיל","התחילה","התחלנו","התחלתם","התחילו"],
+    fut:["אתחיל","תתחיל","תתחילי","יתחיל","תתחיל","נתחיל","תתחילו","יתחילו"] },
+  { inf:"להבין", es:"entender", b:"הִפְעִיל", root:"ב־י־ן", note:"הפעיל con raíz ע״י: הבנתי, הבין",
+    pres:["מבין","מבינה","מבינים","מבינות"],
+    past:["הבנתי","הבנת","הבנת","הבין","הבינה","הבנו","הבנתם","הבינו"],
+    fut:["אבין","תבין","תביני","יבין","תבין","נבין","תבינו","יבינו"] },
+  { inf:"להתלבש", es:"vestirse", b:"הִתְפַּעֵל", root:"ל־ב־ש", note:"התפעל: acción reflexiva (uno mismo)",
+    pres:["מתלבש","מתלבשת","מתלבשים","מתלבשות"],
+    past:["התלבשתי","התלבשת","התלבשת","התלבש","התלבשה","התלבשנו","התלבשתם","התלבשו"],
+    fut:["אתלבש","תתלבש","תתלבשי","יתלבש","תתלבש","נתלבש","תתלבשו","יתלבשו"] },
+  { inf:"להתקשר", es:"llamar (por teléfono)", b:"הִתְפַּעֵל", root:"ק־ש־ר", note:"Se usa con ל: התקשרתי אליו / לאמא",
+    pres:["מתקשר","מתקשרת","מתקשרים","מתקשרות"],
+    past:["התקשרתי","התקשרת","התקשרת","התקשר","התקשרה","התקשרנו","התקשרתם","התקשרו"],
+    fut:["אתקשר","תתקשר","תתקשרי","יתקשר","תתקשר","נתקשר","תתקשרו","יתקשרו"] },
+  { inf:"להיכנס", es:"entrar", b:"נִפְעַל", root:"כ־נ־ס", note:"נפעל: presente y pasado con נ־; futuro con י (איכנס)",
+    pres:["נכנס","נכנסת","נכנסים","נכנסות"],
+    past:["נכנסתי","נכנסת","נכנסת","נכנס","נכנסה","נכנסנו","נכנסתם","נכנסו"],
+    fut:["איכנס","תיכנס","תיכנסי","ייכנס","תיכנס","ניכנס","תיכנסו","ייכנסו"] },
+];
+
+const PREPS = [
+  { p:"של", es:"de (posesión)", f:["שלי","שלך","שלך","שלו","שלה","שלנו","שלכם","שלהם"] },
+  { p:"ל", es:"a / para", f:["לי","לך","לך","לו","לה","לנו","לכם","להם"] },
+  { p:"את", es:"objeto directo", f:["אותי","אותך","אותך","אותו","אותה","אותנו","אתכם","אותם"], alt:{6:["אותכם"]} },
+  { p:"עם", es:"con", f:["איתי","איתך","איתך","איתו","איתה","איתנו","איתכם","איתם"], alt:{0:["אתי"],3:["אתו"],4:["אתה"],5:["אתנו"],6:["אתכם"],7:["אתם"]} },
+  { p:"אצל", es:"en casa de / con", f:["אצלי","אצלך","אצלך","אצלו","אצלה","אצלנו","אצלכם","אצלם"] },
+  { p:"בשביל", es:"para (por el bien de)", f:["בשבילי","בשבילך","בשבילך","בשבילו","בשבילה","בשבילנו","בשבילכם","בשבילם"] },
+  { p:"ב", es:"en", f:["בי","בך","בך","בו","בה","בנו","בכם","בהם"] },
+  { p:"מ", es:"de / desde", f:["ממני","ממך","ממך","ממנו","ממנה","מאיתנו","מכם","מהם"], alt:{5:["מאתנו"]} },
+  { p:"על", es:"sobre / acerca de", f:["עליי","עליך","עלייך","עליו","עליה","עלינו","עליכם","עליהם"], alt:{0:["עלי"],2:["עליך"]} },
+  { p:"אל", es:"hacia / a", f:["אליי","אליך","אלייך","אליו","אליה","אלינו","אליכם","אליהם"], alt:{0:["אלי"],2:["אליך"]} },
+];
+
+const VOCAB = {
+  "Trabajo": [
+    ["משרה","misrá","puesto de trabajo","חיפשתי משרה חלקית."],["ראיון עבודה","reayón avodá","entrevista de trabajo",""],
+    ["משכורת","maskóret","sueldo",""],["מנהל / מנהלת","menahél / menahélet","jefe / jefa",""],
+    ["ישיבה","yeshivá","reunión (de trabajo)","יש לי ישיבה בעשר."],["ניסיון","nisayón","experiencia",""],
+    ["קורות חיים","korót jayím","currículum",""],["להתפטר","lehitpatér","renunciar (dimitir)",""],
+    ["לפטר","lefatér","despedir (a alguien)",""],["חופשה","jufshá","vacaciones / licencia",""],
+  ],
+  "Salud": [
+    ["תור","tor","cita / turno (y también cola)","קבעתי תור לרופא."],["קופת חולים","kupát jolím","mutualista (caja de salud)",""],
+    ["מרשם","mirshám","receta médica",""],["תרופה","trufá","medicamento",""],["חום","jom","fiebre (y calor)",""],
+    ["כאב ראש","keév rosh","dolor de cabeza",""],["להחלים","lehajlím","recuperarse",""],["בית מרקחת","beit mirkájat","farmacia",""],
+    ["ביטוח","bitúaj","seguro",""],["בדיקת דם","bdikát dam","análisis de sangre",""],
+  ],
+  "Ciudad y trámites": [
+    ["עירייה","iriyá","ayuntamiento",""],["משרד הפנים","misrád hapním","Ministerio del Interior",""],
+    ["טופס","tófes","formulario","צריך למלא טופס."],["תעודת זהות","teudát zehút","documento de identidad",""],
+    ["שכר דירה","sjar dirá","alquiler",""],["שותף / שותפה","shutáf / shutafá","compañero/a de piso",""],
+    ["שכן","shajén","vecino",""],["תחבורה ציבורית","tajburá tsiburít","transporte público",""],
+    ["פקק","pkak","atasco",""],["חניה","janayá","estacionamiento",""],
+  ],
+  "Emociones y opinión": [
+    ["לדעתי","ledaatí","en mi opinión",""],["נראה לי","nir'é li","me parece",""],["להסכים","lehaskím","estar de acuerdo","אני לא מסכים איתך."],
+    ["להתווכח","lehitvakéaj","discutir",""],["מאוכזב","meujzáv","decepcionado",""],["מתוסכל","metuskál","frustrado",""],
+    ["לחוץ","lajúts","estresado",""],["רגוע","ragúa","tranquilo",""],["גאה","gué","orgulloso",""],["מופתע","mufta","sorprendido",""],
+  ],
+  "Tiempo y frecuencia": [
+    ["בדרך כלל","bederéj klal","normalmente",""],["לפעמים","lif'amím","a veces",""],["אף פעם לא","af pa'am lo","nunca","אף פעם לא הייתי באילת."],
+    ["כבר","kvar","ya",""],["עדיין","adáyin","todavía",""],["בקרוב","bekaróv","pronto",""],["מיד","miyád","enseguida",""],
+    ["לאחרונה","laajroná","últimamente",""],["בינתיים","beinatáyim","mientras tanto",""],["פתאום","pit'óm","de repente",""],
+  ],
+  "Conectores": [
+    ["למרות ש…","lamrót she…","a pesar de que…","למרות שהיה קר, יצאנו."],["בגלל ש…","biglál she…","porque… (a causa de)",""],
+    ["לכן","lajén","por eso",""],["כדי ל…","kedéi le…","para… (+ infinitivo)","באתי כדי לעזור."],["אלא","éla","sino",""],
+    ["בזמן ש…","bizmán she…","mientras…",""],["לפני ש…","lifnéi she…","antes de que…",""],["אחרי ש…","ajaréi she…","después de que…",""],
+    ["אפילו","afílu","incluso / ni siquiera",""],["דווקא","dávka","precisamente / al contrario",""],["בעצם","be'étsem","en realidad",""],
+    ["מצד אחד… מצד שני…","mitsád ejád… mitsád shení…","por un lado… por otro…",""],
+  ],
+  "Argot y expresiones": [
+    ["סבבה","sababa","vale / genial",""],["יאללה","yála","¡venga! / ¡vamos!",""],["אחלה","ajla","genial, de lujo","אחלה רעיון!"],
+    ["חבל על הזמן","javal al hazmán","increíble (o: una pérdida de tiempo, según el contexto)",""],
+    ["על הפנים","al hapaním","fatal, malísimo",""],["אין מצב","ein matsáv","ni de broma / imposible",""],
+    ["יש מצב","yesh matsáv","puede ser / ¿hay chance?",""],["בכיף","bekéif","con gusto",""],
+    ["תכלס","tajlés","en la práctica / al grano",""],["סתם","stam","porque sí / es broma",""],
+    ["באסה","basa","qué bajón / qué pena",""],["לא נורא","lo norá","no pasa nada",""],["שווה","shavé","vale la pena",""],
+  ],
+};
+const ALLWORDS = Object.entries(VOCAB).flatMap(([c, ws]) => ws.map(w => ({ he:w[0], tr:w[1], es:w[2], ex:w[3], cat:c })));
+
+const TEXTS = [
+  { title:"דירה חדשה", lvl:"ב",
+    body:"בחודש שעבר עברתי לדירה חדשה בחיפה. הדירה קטנה, אבל יש בה מרפסת עם נוף לים. שכר הדירה יקר יותר ממה שחשבתי, ולכן אני מחפשת שותפה. השכנים שלי נחמדים מאוד: ביום הראשון הם הביאו לי עוגה ועזרו לי לסחוב את הארגזים. הבעיה היחידה היא החניה. כל ערב אני מסתובבת חצי שעה עד שאני מוצאת מקום.",
+    gloss:[["עברתי ל…","me mudé a…"],["מרפסת","balcón"],["נוף","vista"],["ממה שחשבתי","de lo que pensaba"],["לסחוב","cargar (algo pesado)"],["ארגזים","cajas"],["מסתובבת","doy vueltas"]],
+    qs:[
+      ["איפה נמצאת הדירה?", ["בחיפה","בתל אביב","בירושלים","בבאר שבע"]],
+      ["למה היא מחפשת שותפה?", ["כי שכר הדירה יקר","כי הדירה גדולה מדי","כי היא מרגישה לבד","כי השכנים לא נחמדים"]],
+      ["מה עשו השכנים ביום הראשון?", ["הביאו עוגה ועזרו עם הארגזים","הזמינו אותה לארוחת ערב","התלוננו על הרעש","עזרו לה למצוא חניה"]],
+      ["מה הבעיה היחידה בדירה?", ["החניה","הנוף","השכנים","המרפסת"]],
+    ] },
+  { title:"ראיון עבודה", lvl:"ב–ג",
+    body:"אתמול היה לדני ראיון עבודה בחברת הייטק. הוא היה לחוץ מאוד, כי זו המשרה שהוא הכי רוצה. הראיון התחיל באיחור של עשרים דקות, ובזמן שחיכה, דני חזר בראש על התשובות שהכין. המנהלת שאלה אותו על הניסיון שלו ועל הפרויקט האחרון שעשה. למרות שהיה לחוץ, הוא ענה טוב, ובסוף היא אמרה לו שיחזרו אליו עד סוף השבוע. עכשיו דני לא מפסיק לבדוק את הטלפון.",
+    gloss:[["באיחור","con retraso"],["חזר בראש על","repasó mentalmente"],["שהכין","que había preparado"],["יחזרו אליו","le responderán (lo volverán a contactar)"],["לא מפסיק ל…","no deja de…"]],
+    qs:[
+      ["למה דני היה לחוץ?", ["כי זו המשרה שהוא הכי רוצה","כי הוא איחר לראיון","כי הוא לא הכין תשובות","כי המנהלת לא הייתה נחמדה"]],
+      ["מה דני עשה בזמן שחיכה?", ["חזר בראש על התשובות שהכין","דיבר בטלפון עם חבר","קרא עיתון","הלך לשתות קפה"]],
+      ["על מה שאלה אותו המנהלת?", ["על הניסיון שלו ועל הפרויקט האחרון","על המשכורת שהוא רוצה","על המשפחה שלו","על התחביבים שלו"]],
+      ["מתי יחזרו אליו?", ["עד סוף השבוע","מחר בבוקר","בעוד חודש","הם לא אמרו"]],
+    ] },
+  { title:"יום בקופת חולים", lvl:"ג",
+    body:"השבוע הרגשתי לא טוב: היה לי חום וכאב ראש חזק. ניסיתי לקבוע תור לרופאת המשפחה באפליקציה של קופת החולים, אבל התור הפנוי הראשון היה רק בעוד חמישה ימים. בסוף התקשרתי למוקד, ואמרו לי לבוא עוד באותו יום למרפאה הדחופה. הרופא בדק אותי, נתן לי מרשם לתרופה ואמר לי לנוח ולשתות הרבה. אחרי שלושה ימים כבר החלמתי, ודווקא עכשיו, כשאני בריא, קיבלתי הודעה שהתור לרופאת המשפחה מחר.",
+    gloss:[["לקבוע תור","pedir cita"],["פנוי","libre, disponible"],["מוקד","centro de atención telefónica"],["עוד באותו יום","ese mismo día"],["מרפאה דחופה","consultorio de urgencias"],["החלמתי","me recuperé"],["דווקא עכשיו","justo ahora (ironía)"]],
+    qs:[
+      ["מה היה לו?", ["חום וכאב ראש","כאב בטן","כאב גב","שיעול"]],
+      ["למה הוא לא חיכה לתור באפליקציה?", ["התור הפנוי הראשון היה רק בעוד חמישה ימים","האפליקציה לא עבדה","הרופאה הייתה בחופשה","הוא לא ידע איך להשתמש בה"]],
+      ["מה אמר לו הרופא?", ["לנוח ולשתות הרבה","לחזור לעבודה","לעשות בדיקת דם","לבוא שוב מחר"]],
+      ["מה האירוניה בסוף הסיפור?", ["הוא קיבל תור לרופאה אחרי שכבר החלים","הרופא לא נתן לו תרופה","המוקד לא ענה","הוא חלה שוב"]],
+    ] },
+];
+
+const GOALS = [ { xp:30, label:"Suave" }, { xp:50, label:"Normal" }, { xp:80, label:"En serio" }, { xp:120, label:"Ulpán intensivo" } ];
+const MISSIONS = [
+  { id:"session", t:"Completa la sesión del día", key:"sessions", n:1 },
+  { id:"verbs", t:"Acierta 10 verbos", key:"verbsOk", n:10 },
+  { id:"preps", t:"Acierta 8 preposiciones", key:"prepsOk", n:8 },
+  { id:"typed", t:"Escribe bien 5 respuestas con el teclado", key:"typedOk", n:5 },
+  { id:"words", t:"Marca 6 palabras nuevas como sabidas", key:"words", n:6 },
+  { id:"read", t:"Termina una lectura", key:"readings", n:1 },
+  { id:"combo", t:"Encadena 7 aciertos seguidos", key:"bestCombo", n:7 },
+];
+const DOW = ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
+
+/* ================= STATE ================= */
+const KEY = "leat-leat-v2";
+const freshToday = d => ({ date: d, xp: 0, verbsOk: 0, prepsOk: 0, typedOk: 0, words: 0, readings: 0, sessions: 0, combo: 0, bestCombo: 0, missions: [] });
+const localDay = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+let state = { known: [], verbs: { c: 0, t: 0 }, preps: { c: 0, t: 0 }, modes: { verbs: "choose", preps: "choose" },
+  goal: 50, totalXp: 0, history: {}, today: freshToday(localDay()) };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = Object.assign(state, s); } catch (e) {}
+if (!state.today || !state.today.missions) state.today = freshToday(localDay());
+function save() { state.updatedAt = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} renderStats(); scheduleRemote(); }
+
+/* ---------- account sync (Supabase): one private row per person in table "progress" ----------
+   Fill in these two values from your Supabase project (Settings → API). The anon key is meant to be public;
+   the row-level security policies in the setup guide keep each person's row private. */
+const SUPABASE_URL = "PEGA_AQUI_TU_PROJECT_URL";
+const SUPABASE_ANON_KEY = "PEGA_AQUI_TU_ANON_KEY";
+const configured = /^https:\/\//.test(SUPABASE_URL) && !SUPABASE_ANON_KEY.startsWith("PEGA");
+let sb = null, uid = null, pushTimer = null, writing = false, pendingPush = false;
+function setSync(s, text) { const el = document.getElementById("sync"); el.dataset.state = s; el.textContent = text; }
+function scheduleRemote() { if (!uid) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushRemote, 1200); }
+async function pushRemote() {
+  if (!uid) return;
+  if (writing) { pendingPush = true; return; }
+  writing = true; setSync("saving", "Guardando…");
+  const { error } = await sb.from("progress").upsert({ user_id: uid, data: JSON.parse(JSON.stringify(state)), updated_at: new Date().toISOString() });
+  if (error) { setSync("error", "No se pudo guardar"); setTimeout(scheduleRemote, 5000); }
+  else setSync("cloud", "Sincronizado");
+  writing = false;
+  if (pendingPush) { pendingPush = false; pushRemote(); }
+}
+function mergeStates(a, b) {
+  const newer = (b.updatedAt || 0) > (a.updatedAt || 0) ? b : a;
+  const out = Object.assign({}, a, { goal: newer.goal, modes: newer.modes });
+  out.known = [...new Set([...(a.known || []), ...(b.known || [])])];
+  for (const k of ["verbs", "preps"]) out[k] = ((b[k] || {}).t || 0) > ((a[k] || {}).t || 0) ? b[k] : a[k];
+  out.totalXp = Math.max(a.totalXp || 0, b.totalXp || 0);
+  out.history = Object.assign({}, a.history);
+  for (const [d, h] of Object.entries(b.history || {})) if (!out.history[d] || h.xp > out.history[d].xp) out.history[d] = h;
+  const ta = a.today || {}, tb = b.today || {};
+  if (ta.date === tb.date) {
+    const t = Object.assign({}, ta);
+    for (const k of Object.keys(tb)) if (typeof tb[k] === "number") t[k] = Math.max(ta[k] || 0, tb[k]);
+    t.missions = [...new Set([...(ta.missions || []), ...(tb.missions || [])])];
+    out.today = t;
+  } else out.today = (tb.date || "") > (ta.date || "") ? tb : ta;
+  out.updatedAt = Math.max(a.updatedAt || 0, b.updatedAt || 0);
+  return out;
+}
+async function pullRemote() {
+  if (!uid) return;
+  try {
+    const { data, error } = await sb.from("progress").select("data").eq("user_id", uid).maybeSingle();
+    if (error) throw error;
+    if (data && data.data) state = mergeStates(state, data.data);
+    ensureToday();
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    renderStats(); if (!document.getElementById("hoy").hidden && !sess) renderHome();
+    buildDeck();
+    await pushRemote();
+  } catch (e) { setSync("error", "Sin conexión con tu cuenta"); }
+}
+function showAccount(session) {
+  const signed = !!session;
+  document.getElementById("acc-out").hidden = signed;
+  document.getElementById("acc-in").hidden = !signed;
+  if (signed) document.getElementById("acc-email").textContent = session.user.email || "";
+}
+async function onSession(session) {
+  showAccount(session);
+  const newUid = session ? session.user.id : null;
+  if (newUid === uid) return;
+  uid = newUid;
+  if (uid) { setSync("saving", "Sincronizando…"); await pullRemote(); }
+  else setSync("local", "Entrar para sincronizar");
+}
+async function initSync() {
+  const syncBtn = document.getElementById("sync"), panel = document.getElementById("account"), msg = document.getElementById("acc-msg");
+  if (!configured || !window.supabase) { syncBtn.disabled = true; setSync("local", "Solo en este navegador"); return; }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  setSync("local", "Entrar para sincronizar");
+  syncBtn.onclick = () => { panel.hidden = !panel.hidden; syncBtn.setAttribute("aria-expanded", !panel.hidden); msg.textContent = ""; };
+  document.getElementById("login-form").onsubmit = async e => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    msg.textContent = "Enviando…";
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+    msg.textContent = error ? "No se pudo enviar el enlace. Revisa el email y vuelve a intentarlo en un minuto." : "Listo. Abre el enlace que te llegó por email en este mismo navegador.";
+  };
+  document.getElementById("logout").onclick = async () => { await sb.auth.signOut(); panel.hidden = true; };
+  sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => onSession(session), 0); });
+  const { data } = await sb.auth.getSession();
+  await onSession(data.session);
+  if (!data.session && !state.totalXp) { panel.hidden = false; syncBtn.setAttribute("aria-expanded", "true"); }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pullRemote(); });
+}
+function ensureToday() { const d = localDay(); if (state.today.date !== d) state.today = freshToday(d); return state.today; }
+
+/* ================= GAMIFICATION ================= */
+function gem(n) {
+  if (n < 1 || n > 99) return String(n);
+  const U = ["","א","ב","ג","ד","ה","ו","ז","ח","ט"], T = ["","י","כ","ל","מ","נ","ס","ע","פ","צ"];
+  const s = n === 15 ? "טו" : n === 16 ? "טז" : T[Math.floor(n / 10)] + U[n % 10];
+  return s.length === 1 ? s + "׳" : s.slice(0, -1) + "״" + s.slice(-1);
+}
+function hebDate() {
+  try {
+    const parts = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", { day: "numeric", month: "long" }).formatToParts(new Date());
+    const day = parseInt(parts.find(p => p.type === "day").value, 10);
+    const month = parts.find(p => p.type === "month").value;
+    if (isNaN(day)) return parts.map(p => p.value).join("");
+    return `${gem(day)} ב${month.replace(/^ב/, "")}`;
+  } catch (e) { return ""; }
+}
+function levelInfo(total) {
+  let L = 1, acc = 0, need = 60;
+  while (total >= acc + need) { acc += need; L++; need = 60 + 40 * (L - 1); }
+  return { L, into: total - acc, need };
+}
+const met = k => { const h = state.history[k]; return !!h && h.xp >= h.goal; };
+function streak() {
+  let s = 0; const d = new Date();
+  if (!met(localDay(d))) d.setDate(d.getDate() - 1);
+  while (met(localDay(d))) { s++; d.setDate(d.getDate() - 1); }
+  return s;
+}
+function dayMissions(date) {
+  let h = 0; for (const c of date) h = (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0;
+  const pool = MISSIONS.slice(1), picks = [];
+  while (picks.length < 2) { const m = pool[h % pool.length]; if (!picks.includes(m)) picks.push(m); h = (Math.imul(h, 1103515245) + 12345) >>> 0; }
+  return [MISSIONS[0], ...picks];
+}
+function xpPill(n) {
+  const p = document.createElement("div"); p.className = "xppill"; p.textContent = `+${n} XP`;
+  document.getElementById("xp-layer").appendChild(p); setTimeout(() => p.remove(), 950);
+}
+function award(n) {
+  if (!n) return 0;
+  const t = ensureToday();
+  const wasMet = t.xp >= state.goal, lvlBefore = levelInfo(state.totalXp).L;
+  t.xp += n; state.totalXp += n;
+  state.history[t.date] = { xp: t.xp, goal: state.goal };
+  xpPill(n);
+  if (!wasMet && t.xp >= state.goal) toast(`Objetivo del día cumplido. Racha: ${streak()} ${streak() === 1 ? "día" : "días"}.`);
+  const lvlAfter = levelInfo(state.totalXp).L;
+  if (lvlAfter > lvlBefore) toast(`Subiste al nivel ${gem(lvlAfter)} (${lvlAfter}).`);
+  return n;
+}
+function checkMissions() {
+  const t = ensureToday(); let bonus = 0;
+  for (const m of dayMissions(t.date)) {
+    if (!t.missions.includes(m.id) && (t[m.key] || 0) >= m.n) { t.missions.push(m.id); bonus += award(10); toast(`Misión cumplida: ${m.t}. +10 XP`); }
+  }
+  return bonus;
+}
+/* Called after every answered question anywhere in the app */
+function record(kind, ok, typed, xp) {
+  const t = ensureToday();
+  if (kind === "verbs" || kind === "preps") { state[kind].t++; if (ok) state[kind].c++; }
+  if (ok) {
+    if (kind === "verbs") t.verbsOk++;
+    if (kind === "preps") t.prepsOk++;
+    if (typed) t.typedOk++;
+    t.combo++; t.bestCombo = Math.max(t.bestCombo, t.combo);
+  } else t.combo = 0;
+  const got = ok ? award(xp) : 0;
+  const bonus = checkMissions();
+  save();
+  return got + bonus;
+}
+
+/* ================= HELPERS ================= */
+let toastT;
+function toast(msg, ms = 3200) { const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
+function hebrewVoice() {
+  return new Promise(resolve => {
+    const find = () => speechSynthesis.getVoices().find(v => /^(he|iw)/i.test(v.lang));
+    if (speechSynthesis.getVoices().length) return resolve(find() || null);
+    const done = () => resolve(find() || null);
+    speechSynthesis.addEventListener("voiceschanged", done, { once: true });
+    setTimeout(done, 1200);
+  });
+}
+const NO_VOICE = "Tu ordenador no tiene una voz en hebreo. Lo más fácil: abre la app en Microsoft Edge, que ya trae voces en hebreo. O añádela en Windows: Configuración → Hora e idioma → Idioma y región → Agregar idioma → Hebreo, con “Texto a voz” marcado.";
+/* Resolves true if it spoke, false if there is no Hebrew voice (the caller can show the written pronunciation instead) */
+async function speak(text, rate = 0.9) {
+  if (!("speechSynthesis" in window)) { toast("Tu navegador no puede leer en voz alta. Mira la pronunciación escrita.", 5000); return false; }
+  const v = await hebrewVoice();
+  if (!v) { toast(NO_VOICE, 9000); return false; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[…\/]/g, " "));
+  u.lang = v.lang; u.voice = v; u.rate = rate;
+  speechSynthesis.speak(u);
+  return true;
+}
+if ("speechSynthesis" in window) speechSynthesis.getVoices();
+const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const norm = s => s.replace(/[֑-ׇ]/g, "").replace(/[\s'"׳״?.!,]/g, "").trim();
+function choices(answer, pool, n = 3) {
+  const seen = new Set([answer]), out = [];
+  for (const x of shuffle(pool)) { if (!seen.has(x)) { seen.add(x); out.push(x); } if (out.length === n) break; }
+  return shuffle([answer, ...out]);
+}
+const pctTxt = s => s.t ? Math.round(s.c / s.t * 100) + "%" : "–";
+
+/* ================= QUESTION RENDERER =================
+   q = { kind, promptHTML, answer, accept[], options[], optLang, after() }
+   onResult(ok, typed) -> xp gained; onNext() */
+function renderQuestion(el, q, mode, headHTML, onResult, onNext) {
+  let done = false;
+  const esOpts = q.optLang === "es";
+  el.innerHTML = `
+    <div class="qhead">${headHTML()}</div>
+    <div class="qprompt">${q.promptHTML}</div>
+    ${mode === "choose"
+      ? `<div class="opts">${q.options.map((o, i) => `<button class="opt${esOpts ? " es" : ""}" ${esOpts ? "" : 'lang="he" dir="rtl"'} data-i="${i}">${o}</button>`).join("")}</div>`
+      : `<form class="typein" autocomplete="off"><input type="text" id="answer-input" lang="he" dir="rtl" placeholder="הקלד/י כאן" aria-label="Tu respuesta"><button class="btn primary">Comprobar</button></form>`}
+    <div class="fb"></div>
+    <div class="row" style="margin-top:12px"><button class="btn primary next" hidden>Siguiente</button></div>`;
+  function finish(ok, typed) {
+    done = true;
+    const xp = onResult(ok, typed);
+    el.querySelector(".qhead").innerHTML = headHTML();
+    const ans = esOpts ? q.answer : `<span class="he" lang="he">${q.answer}</span>`;
+    el.querySelector(".fb").innerHTML = `<div class="feedback">${ok ? "✓ Correcto. " : "✗ La respuesta es "}${ans}${xp ? `<span class="xpgain">+${xp} XP</span>` : ""}${q.accept && q.accept.length ? ` <span class="counter">(también: <span class="he" lang="he">${q.accept.join(", ")}</span>)</span>` : ""}${q.after ? q.after() : ""}</div>`;
+    const nx = el.querySelector(".next"); nx.hidden = false; nx.focus();
+    nx.onclick = onNext;
+    const sp = el.querySelector(".fb-speak"); if (sp) sp.onclick = () => speak(sp.dataset.say);
+    const tg = el.querySelector(".fb-table"); if (tg) tg.onclick = () => { const t = el.querySelector(".tablewrap"); t.hidden = !t.hidden; tg.textContent = t.hidden ? "Ver la tabla completa" : "Ocultar la tabla"; };
+  }
+  if (mode === "choose") {
+    el.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+      if (done) return;
+      const ok = q.options[+b.dataset.i] === q.answer;
+      el.querySelectorAll(".opt").forEach((x, i) => { if (q.options[i] === q.answer) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      finish(ok, false);
+    });
+  } else {
+    const inp = el.querySelector("input");
+    inp.focus({ preventScroll: true });
+    el.querySelector("form").onsubmit = e => {
+      e.preventDefault(); if (done) return;
+      if (!inp.value.trim()) { toast("Escribe una respuesta (con el teclado hebreo)."); return; }
+      const ok = [q.answer, ...(q.accept || [])].some(a => norm(a) === norm(inp.value));
+      inp.classList.add(ok ? "right" : "wrong"); inp.readOnly = true;
+      finish(ok, true);
+    };
+  }
+}
+
+function startDrill(el, kind, gen) {
+  const go = () => renderQuestion(el, gen(), state.modes[kind],
+    () => `<p class="counter">Precisión acumulada: ${pctTxt(state[kind])} (${state[kind].c} de ${state[kind].t}) · Aciertos seguidos: ${ensureToday().combo}</p>`,
+    (ok, typed) => record(kind, ok, typed, typed ? 3 : 2), go);
+  go();
+  return go;
+}
+function setupSeg(kind, rerender) {
+  const seg = document.querySelector(`.seg[data-for="${kind}"]`);
+  seg.querySelectorAll("button").forEach(b => {
+    b.setAttribute("aria-pressed", b.dataset.mode === state.modes[kind]);
+    b.onclick = () => { state.modes[kind] = b.dataset.mode; save(); seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); rerender(); };
+  });
+}
+
+/* ================= QUESTION GENERATORS ================= */
+function verbTable(v, hit) {
+  const rows = PERSONS.map((p, i) => `<tr><th>${p}</th><td class="${hit.t === "past" && hit.i === i ? "hit" : ""}">${v.past[i]}</td><td class="${hit.t === "fut" && hit.i === i ? "hit" : ""}">${v.fut[i]}</td></tr>`).join("");
+  const pres = v.pres.map((f, i) => `<td class="${hit.t === "pres" && hit.i === i ? "hit" : ""}">${f}</td>`).join("");
+  return `<div class="tablewrap" hidden>
+    <table class="conj"><tr><th>הווה</th><th>יחיד</th><th>יחידה</th><th>רבים</th><th>רבות</th></tr><tr><th></th>${pres}</tr></table>
+    <table class="conj" style="margin-top:8px"><tr><th></th><th>עבר</th><th>עתיד</th></tr>${rows}</table></div>`;
+}
+function verbQ(all) {
+  const bin = all ? "*" : document.getElementById("v-bin").value;
+  const tSel = all ? "mix" : document.getElementById("v-tense").value;
+  const v = pick(VERBS.filter(v => bin === "*" || v.b === bin));
+  const t = tSel === "mix" ? pick(["pres", "past", "past", "fut", "fut"]) : tSel;
+  const i = Math.floor(Math.random() * (t === "pres" ? 4 : 8));
+  const person = t === "pres" ? PRES_P[i] : PERSONS[i];
+  const answer = v[t][i];
+  return {
+    kind: "verbs", answer, accept: [],
+    options: choices(answer, [...v.pres, ...v.past, ...v.fut]),
+    promptHTML: `<div><span class="tag">${TENSE_LABEL[t]}</span></div>
+      <div class="main"><span>${person}</span> <span class="plus">·</span> <span>${v.inf}</span></div>
+      <div class="sub">${v.es}</div>`,
+    after: () => `<div class="row" style="margin-top:8px"><span class="tag">${v.b}</span><span class="counter">raíz <span class="he" lang="he">${v.root}</span></span>
+        <button class="speak fb-speak" data-say="${person} ${answer}">🔊</button><button class="btn link fb-table">Ver la tabla completa</button></div>
+      ${v.note ? `<div class="counter" style="margin-top:6px">${v.note}</div>` : ""}
+      ${verbTable(v, { t, i })}`,
+  };
+}
+const pSel = document.getElementById("p-prep");
+pSel.innerHTML += PREPS.map((p, i) => `<option value="${i}">${p.p} · ${p.es}</option>`).join("");
+function prepQ(all) {
+  const pr = pick(all || pSel.value === "*" ? PREPS : [PREPS[+pSel.value]]);
+  const i = Math.floor(Math.random() * 8);
+  const answer = pr.f[i], accept = (pr.alt && pr.alt[i]) || [];
+  return {
+    kind: "preps", answer, accept,
+    options: choices(answer, [...pr.f, ...PREPS.map(x => x.f[i])].filter(x => !accept.includes(x))),
+    promptHTML: `<div class="main"><span>${pr.p}</span><span class="plus">+</span><span>${PERSONS[i]}</span></div><div class="sub">${pr.es}</div>`,
+    after: () => `<div class="tablewrap" style="margin-top:8px"><table class="conj"><tr>${PERSONS.map(p => `<th>${p}</th>`).join("")}</tr><tr>${pr.f.map((f, k) => `<td class="${k === i ? "hit" : ""}">${f}</td>`).join("")}</tr></table></div>`,
+  };
+}
+function vocabQ() {
+  const w = pick(ALLWORDS);
+  return {
+    kind: "vocab", answer: w.es, accept: [], optLang: "es",
+    options: choices(w.es, ALLWORDS.map(x => x.es)),
+    promptHTML: `<div><span class="tag">¿Qué significa?</span></div><div class="main">${w.he}</div>`,
+    after: () => w.ex ? `<div class="he" lang="he" style="margin-top:6px;font-weight:500;font-size:1.1rem">${w.ex}</div>` : "",
+  };
+}
+
+/* ================= DRILL TABS ================= */
+const verbRender = startDrill(document.getElementById("verb-drill"), "verbs", () => verbQ(false));
+setupSeg("verbs", verbRender);
+document.getElementById("v-tense").onchange = verbRender;
+document.getElementById("v-bin").onchange = verbRender;
+const prepRender = startDrill(document.getElementById("prep-drill"), "preps", () => prepQ(false));
+setupSeg("preps", prepRender);
+pSel.onchange = prepRender;
+
+/* ================= HOY ================= */
+function renderGoalSeg() {
+  document.getElementById("goal-seg").innerHTML = GOALS.map(g => `<button aria-pressed="${g.xp === state.goal}" data-xp="${g.xp}">${g.label} · ${g.xp}</button>`).join("");
+  document.querySelectorAll("#goal-seg button").forEach(b => b.onclick = () => {
+    state.goal = +b.dataset.xp; const t = ensureToday();
+    if (state.history[t.date] || t.xp) state.history[t.date] = { xp: t.xp, goal: state.goal };
+    save(); renderHome();
+  });
+}
+function renderHome() {
+  const t = ensureToday(), goal = state.goal, frac = Math.min(1, t.xp / goal);
+  document.getElementById("ring-fill").setAttribute("stroke-dashoffset", (326.7 * (1 - frac)).toFixed(1));
+  document.getElementById("ring").classList.toggle("met", t.xp >= goal);
+  document.getElementById("ring-xp").textContent = t.xp;
+  document.getElementById("ring-goal").textContent = `de ${goal} XP`;
+  document.getElementById("hebdate").textContent = hebDate();
+  const left = goal - t.xp, st = streak();
+  document.getElementById("today-msg").textContent =
+    t.xp === 0 ? (st ? `Llevas ${st} ${st === 1 ? "día" : "días"} de racha. Hoy todavía no empezaste: la sesión del día es lo más rápido.` : "Empieza hoy tu racha. La sesión del día es lo más rápido para llegar al objetivo.")
+    : left > 0 ? `Te faltan ${left} XP para el objetivo de hoy.`
+    : `Objetivo cumplido. Racha: ${st} ${st === 1 ? "día" : "días"}. Lo que sumes ahora es extra.`;
+  renderGoalSeg();
+  document.getElementById("start-session").textContent = t.sessions ? "Hacer otra sesión" : "Empezar la sesión del día";
+
+  document.getElementById("missions").innerHTML = dayMissions(t.date).map(m => {
+    const v = Math.min(m.n, t[m.key] || 0), done = t.missions.includes(m.id);
+    return `<div class="mission${done ? " done" : ""}"><div class="chk">${done ? "✓" : ""}</div><div class="mt">${m.t}</div><div class="xp">${done ? "+10 XP" : `${v}/${m.n}`}</div><div class="bar gold"><i style="width:${v / m.n * 100}%"></i></div></div>`;
+  }).join("");
+
+  const cells = [];
+  for (let k = 13; k >= 0; k--) {
+    const d = new Date(); d.setDate(d.getDate() - k);
+    const key = localDay(d), h = state.history[key];
+    const f = h ? Math.min(1, h.xp / h.goal) : 0;
+    cells.push(`<div class="day${met(key) ? " met" : ""}${k === 0 ? " now" : ""}" title="${key}: ${h ? h.xp : 0} XP"><div class="cell"><i style="opacity:${f ? 0.25 + 0.75 * f : 0}"></i></div><small>${DOW[d.getDay()]}</small></div>`);
+  }
+  document.getElementById("days").innerHTML = cells.join("");
+
+  const li = levelInfo(state.totalXp);
+  document.getElementById("lvl-badge").textContent = gem(li.L).replace(/[׳״]/g, "");
+  document.getElementById("lvl-text").innerHTML = `Nivel <span class="he" lang="he">${gem(li.L)}</span> (${li.L}) · ${state.totalXp} XP en total · faltan ${li.need - li.into} XP para el siguiente`;
+  document.getElementById("lvl-bar").style.width = (li.into / li.need * 100) + "%";
+  document.getElementById("acc-text").textContent = `Precisión: verbos ${pctTxt(state.verbs)} · preposiciones ${pctTxt(state.preps)}`;
+}
+function renderStats() {
+  const t = ensureToday();
+  document.getElementById("st-today").textContent = `${t.xp}/${state.goal}`;
+  document.getElementById("bar-today").style.width = Math.min(100, t.xp / state.goal * 100) + "%";
+  document.getElementById("st-streak").textContent = streak();
+  const li = levelInfo(state.totalXp);
+  document.getElementById("st-level").innerHTML = `<span class="he" lang="he">${gem(li.L)}</span>`;
+  document.getElementById("bar-level").style.width = (li.into / li.need * 100) + "%";
+  document.getElementById("st-words").textContent = state.known.length + "/" + ALLWORDS.length;
+  document.getElementById("bar-words").style.width = (state.known.length / ALLWORDS.length * 100) + "%";
+}
+
+/* ---------- daily session ---------- */
+let sess = null;
+function startSession() {
+  const qs = shuffle([...Array(4)].map(() => verbQ(true)).concat([...Array(3)].map(() => prepQ(true)), [...Array(3)].map(() => vocabQ())));
+  sess = { qs, i: 0, right: 0, xp: 0 };
+  document.getElementById("home").hidden = true;
+  document.getElementById("session").hidden = false;
+  renderSessQ();
+}
+function sessHead() {
+  return `<div class="sesshead"><button class="btn" id="sess-exit">Salir</button>
+    <div class="bar"><i style="width:${sess.i / sess.qs.length * 100}%"></i></div>
+    <span class="counter">${Math.min(sess.i + 1, sess.qs.length)}/${sess.qs.length}</span>
+    <span class="combo">${ensureToday().combo >= 3 ? `${ensureToday().combo} seguidos` : ""}</span></div>`;
+}
+function renderSessQ() {
+  const el = document.getElementById("session");
+  if (sess.i >= sess.qs.length) return endSession();
+  const q = sess.qs[sess.i];
+  renderQuestion(el, q, "choose", sessHead,
+    ok => { if (ok) sess.right++; const g = record(q.kind, ok, false, 3); sess.xp += g; return g; },
+    () => { sess.i++; renderSessQ(); });
+}
+document.getElementById("session").addEventListener("click", e => { if (e.target.id === "sess-exit") exitSession(); });
+function endSession() {
+  const t = ensureToday(); t.sessions++;
+  let bonus = award(15);
+  if (sess.right === sess.qs.length) bonus += award(10);
+  bonus += checkMissions();
+  save();
+  sess.xp += bonus;
+  const r = sess.right;
+  const msg = r === 10 ? "Sesión perfecta. כל הכבוד!" : r >= 7 ? "Muy bien. Revisa en Verbos o Preposiciones lo que fallaste." : "Buen trabajo por hacerla. Mañana sale mejor, לאט לאט.";
+  document.getElementById("session").innerHTML = `<div class="summary">
+    <div class="score">${r}/10</div><p style="margin:0">${msg}</p>
+    <div class="gain">+${sess.xp} XP en esta sesión</div>
+    <p class="counter" style="margin:0">Incluye 15 XP por completarla${r === 10 ? " y 10 por hacerla perfecta" : ""}.</p>
+    <button class="btn primary" id="sess-back">Volver a Hoy</button></div>`;
+  document.getElementById("sess-back").onclick = exitSession;
+}
+function exitSession() {
+  sess = null;
+  document.getElementById("session").hidden = true;
+  document.getElementById("home").hidden = false;
+  renderHome();
+}
+document.getElementById("start-session").onclick = startSession;
+
+/* ================= VOCAB ================= */
+const catSel = document.getElementById("cat");
+catSel.innerHTML = `<option value="*">Todos los temas</option>` + Object.keys(VOCAB).map(c => `<option>${c}</option>`).join("");
+let deck = [], pos = 0, flipped = false, dir = "he";
+function buildDeck() { const c = catSel.value; deck = ALLWORDS.filter(w => c === "*" || w.cat === c); pos = 0; flipped = false; renderCard(); }
+let pronFor = null;
+function renderCard() {
+  const w = deck[pos], known = state.known.includes(w.he);
+  const tr = document.getElementById("show-tr").checked || pronFor === w.he;
+  const trDiv = `<div class="tr">${w.tr}</div>`;
+  const front = dir === "he" ? `<div class="bigtxt" lang="he">${w.he}</div>${tr ? trDiv : ""}` : `<div class="bigtxt es">${w.es}</div>`;
+  const back = dir === "he"
+    ? `${tr ? "" : trDiv}<div class="ans">${w.es}</div>`
+    : `<div class="ans he" lang="he">${w.he}</div>${trDiv}`;
+  document.getElementById("fc-pron").disabled = flipped || (dir === "he" && tr);
+  document.getElementById("flash").innerHTML = `<div>${front}${flipped ? back + (w.ex ? `<div class="ex he" lang="he">${w.ex}</div>` : "") + (known ? `<div class="hint">✓ Ya la sabes</div>` : "") : `<div class="hint">Toca para ver la respuesta</div>`}</div>`;
+  document.getElementById("fc-count").textContent = `${pos + 1} de ${deck.length} · ${w.cat}`;
+}
+function nextCard() { pos = (pos + 1) % deck.length; flipped = false; renderCard(); }
+catSel.onchange = buildDeck;
+document.getElementById("show-tr").onchange = renderCard;
+document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => {
+  dir = b.dataset.dir; document.querySelectorAll("[data-dir]").forEach(x => x.setAttribute("aria-pressed", x === b)); flipped = false; renderCard();
+});
+document.getElementById("shuffle").onclick = () => { deck = shuffle(deck); pos = 0; flipped = false; renderCard(); };
+document.getElementById("flash").onclick = () => { flipped = !flipped; renderCard(); };
+document.getElementById("fc-prev").onclick = () => { pos = (pos - 1 + deck.length) % deck.length; flipped = false; renderCard(); };
+async function speakCard(rate) {
+  const w = deck[pos];
+  const ok = await speak(w.he, rate);
+  if (!ok && pronFor !== w.he) { pronFor = w.he; if (dir === "es") flipped = true; renderCard(); }
+}
+document.getElementById("fc-speak").onclick = () => speakCard(0.9);
+document.getElementById("fc-slow").onclick = () => speakCard(0.55);
+document.getElementById("fc-pron").onclick = () => { const w = deck[pos]; pronFor = w.he; if (dir === "es") flipped = true; renderCard(); };
+document.getElementById("fc-know").onclick = () => {
+  const w = deck[pos];
+  if (!state.known.includes(w.he)) { state.known.push(w.he); ensureToday().words++; award(1); checkMissions(); }
+  save(); nextCard();
+};
+document.getElementById("fc-again").onclick = () => { const w = deck[pos]; state.known = state.known.filter(h => h !== w.he); save(); nextCard(); };
+
+/* ================= READING ================= */
+const rSel = document.getElementById("r-text");
+rSel.innerHTML = TEXTS.map((t, i) => `<option value="${i}">${t.title} (nivel ${t.lvl})</option>`).join("");
+let glossOpen = false;
+function renderReading() {
+  const t = TEXTS[+rSel.value];
+  const qs = t.qs.map(([q, opts]) => ({ q, answer: opts[0], options: shuffle(opts) }));
+  document.getElementById("reading").innerHTML = `
+    <div class="text" lang="he">${t.body}</div>
+    <div class="gloss" id="gloss" ${glossOpen ? "" : "hidden"}>${t.gloss.map(([h, e]) => `<div><span class="he" lang="he">${h}</span> · ${e}</div>`).join("")}</div>
+    <div class="rq">${qs.map((x, qi) => `<div><div class="q" lang="he">${qi + 1}. ${x.q}</div>
+      <div class="opts">${x.options.map((o, oi) => `<button class="opt" lang="he" dir="rtl" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div></div>`).join("")}</div>
+    <p class="counter" id="r-score" style="margin-top:14px"></p>`;
+  let answered = 0, right = 0;
+  document.querySelectorAll("#reading .opt").forEach(b => b.onclick = () => {
+    const x = qs[+b.dataset.q]; if (x.done) return; x.done = true; answered++;
+    const ok = x.options[+b.dataset.o] === x.answer; if (ok) right++;
+    document.querySelectorAll(`#reading .opt[data-q="${b.dataset.q}"]`).forEach(o => { if (x.options[+o.dataset.o] === x.answer) o.classList.add("right"); });
+    if (!ok) b.classList.add("wrong");
+    record("reading", ok, false, 3);
+    if (answered === qs.length) {
+      ensureToday().readings++; checkMissions(); save();
+      document.getElementById("r-score").textContent = `Resultado: ${right} de ${qs.length}. ${right === qs.length ? "כל הכבוד!" : "Relee el texto con el glosario y vuelve a elegirlo en la lista para reintentar."}`;
+    }
+  });
+}
+rSel.onchange = renderReading;
+document.getElementById("r-speak").onclick = () => speak(TEXTS[+rSel.value].body);
+document.getElementById("r-gloss-btn").onclick = e => {
+  glossOpen = !glossOpen; document.getElementById("gloss").hidden = !glossOpen;
+  e.target.textContent = glossOpen ? "Ocultar glosario" : "Mostrar glosario";
+};
+
+/* ================= TABS + BOOT ================= */
+const TABS = ["hoy", "verbos", "preposiciones", "vocabulario", "lectura"];
+function showTab(id) {
+  if (!TABS.includes(id)) id = "hoy";
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === id));
+  TABS.forEach(t => document.getElementById(t).hidden = t !== id);
+  if (id === "hoy" && !sess) renderHome();
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => { location.hash = b.dataset.tab; }));
+window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+renderStats(); buildDeck(); renderReading(); showTab(location.hash.slice(1));
+initSync();
+</script>
+</body>
+</html>
