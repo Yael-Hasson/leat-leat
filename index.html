@@ -531,8 +531,8 @@ function save() { state.updatedAt = Date.now(); try { localStorage.setItem(KEY, 
 /* ---------- account sync (Supabase): one private row per person in table "progress" ----------
    Fill in these two values from your Supabase project (Settings → API). The anon key is meant to be public;
    the row-level security policies in the setup guide keep each person's row private. */
-const SUPABASE_URL = "PEGA_AQUI_TU_PROJECT_URL";
-const SUPABASE_ANON_KEY = "PEGA_AQUI_TU_ANON_KEY";
+const SUPABASE_URL = "https://zarsbvbwxsundlamphcy.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphcnNidmJ3eHN1bmRsYW1waGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4OTEwMjQsImV4cCI6MjExMDQ2NzAyNH0.0f7JFkD0tpdLw9lit1SREwWuwOdrSbkzpkWQ_gXdAf0";
 const configured = /^https:\/\//.test(SUPABASE_URL) && !SUPABASE_ANON_KEY.startsWith("PEGA");
 let sb = null, uid = null, pushTimer = null, writing = false, pendingPush = false;
 function setSync(s, text) { const el = document.getElementById("sync"); el.dataset.state = s; el.textContent = text; }
