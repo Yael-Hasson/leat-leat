@@ -197,7 +197,7 @@ button.sync { font: inherit; font-size: .8rem; background: none; border: 1px sol
 .account { margin-top: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: grid; gap: 10px; max-width: 520px; justify-self: end; width: 100%; }
 .account p { margin: 0; color: var(--muted); font-size: .9rem; }
 .account form { display: flex; gap: 8px; flex-wrap: wrap; }
-.account input[type="email"] { flex: 1; min-width: 0; font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.account input[type="email"], .account input[type="password"] { flex: 1 1 170px; min-width: 0; font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
@@ -213,10 +213,14 @@ button.sync { font: inherit; font-size: .8rem; background: none; border: 1px sol
     </div>
     <div class="account" id="account" hidden>
       <div id="acc-out">
-        <p>Entra con tu email para guardar tu progreso y verlo en cualquier ordenador o en el móvil. Te mandamos un enlace; no hace falta contraseña.</p>
+        <div class="seg" role="group" aria-label="Entrar o crear cuenta" id="auth-mode">
+          <button type="button" aria-pressed="true" data-m="in">Entrar</button><button type="button" aria-pressed="false" data-m="up">Crear cuenta</button>
+        </div>
+        <p id="auth-hint" style="margin-top:10px">Entra para guardar tu progreso y verlo en cualquier ordenador o en el móvil.</p>
         <form id="login-form" style="margin-top:10px">
           <input type="email" id="login-email" required placeholder="tu@email.com" autocomplete="email" aria-label="Email">
-          <button class="btn primary">Enviarme el enlace</button>
+          <input type="password" id="login-pass" required minlength="6" placeholder="Contraseña" autocomplete="current-password" aria-label="Contraseña">
+          <button class="btn primary" id="auth-submit">Entrar</button>
         </form>
       </div>
       <div id="acc-in" hidden>
@@ -598,12 +602,43 @@ async function initSync() {
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   setSync("local", "Entrar para sincronizar");
   syncBtn.onclick = () => { panel.hidden = !panel.hidden; syncBtn.setAttribute("aria-expanded", !panel.hidden); msg.textContent = ""; };
+  let authMode = "in";
+  const passEl = document.getElementById("login-pass"), submitEl = document.getElementById("auth-submit");
+  document.querySelectorAll("#auth-mode button").forEach(b => b.onclick = () => {
+    authMode = b.dataset.m;
+    document.querySelectorAll("#auth-mode button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    submitEl.textContent = authMode === "in" ? "Entrar" : "Crear cuenta";
+    passEl.autocomplete = authMode === "in" ? "current-password" : "new-password";
+    passEl.placeholder = authMode === "in" ? "Contraseña" : "Contraseña (mínimo 6 caracteres)";
+    document.getElementById("auth-hint").textContent = authMode === "in"
+      ? "Entra para guardar tu progreso y verlo en cualquier ordenador o en el móvil."
+      : "Crea tu cuenta con tu email y una contraseña. Tu progreso es privado: nadie más lo ve.";
+    msg.textContent = "";
+  });
   document.getElementById("login-form").onsubmit = async e => {
     e.preventDefault();
-    const email = document.getElementById("login-email").value.trim();
-    msg.textContent = "Enviando…";
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
-    msg.textContent = error ? "No se pudo enviar el enlace. Revisa el email y vuelve a intentarlo en un minuto." : "Listo. Abre el enlace que te llegó por email en este mismo navegador.";
+    const email = document.getElementById("login-email").value.trim(), password = passEl.value;
+    submitEl.disabled = true;
+    msg.textContent = authMode === "in" ? "Entrando…" : "Creando tu cuenta…";
+    let res;
+    try {
+      res = authMode === "in" ? await sb.auth.signInWithPassword({ email, password }) : await sb.auth.signUp({ email, password });
+    } catch (err) { res = { error: err }; }
+    submitEl.disabled = false;
+    const err = res.error, m = (err && err.message || "").toLowerCase();
+    if (err) {
+      msg.textContent =
+        m.includes("invalid login") ? "Email o contraseña incorrectos." :
+        m.includes("already registered") || m.includes("already exists") ? "Ya existe una cuenta con ese email. Pulsa “Entrar”." :
+        m.includes("email not confirmed") ? "Esta cuenta no está confirmada. Pide a quien te pasó la app que la active." :
+        m.includes("password") ? "La contraseña tiene que tener al menos 6 caracteres." :
+        m.includes("signups not allowed") || m.includes("signup") ? "Ahora mismo no se pueden crear cuentas nuevas." :
+        "No se pudo " + (authMode === "in" ? "entrar" : "crear la cuenta") + ". Inténtalo de nuevo en un momento.";
+      return;
+    }
+    if (authMode === "up" && !res.data.session) { msg.textContent = "Cuenta creada, pero falta confirmarla por email. Pide a quien te pasó la app que la active."; return; }
+    passEl.value = ""; msg.textContent = ""; panel.hidden = true; syncBtn.setAttribute("aria-expanded", "false");
+    toast(authMode === "in" ? "Has entrado. Sincronizando tu progreso." : "Cuenta creada. Tu progreso ya se guarda.");
   };
   document.getElementById("logout").onclick = async () => { await sb.auth.signOut(); panel.hidden = true; };
   sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => onSession(session), 0); });
